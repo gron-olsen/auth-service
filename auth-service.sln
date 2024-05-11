@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "auth-serviceAPI", "auth-serviceAPI\auth-serviceAPI.csproj", "{5C1C7BA4-C589-41D7-8BEA-C62A05339C82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "auth-serviceAPI.Test", "auth-serviceAPI.Test\auth-serviceAPI.Test.csproj", "{F3FADBBF-355D-4514-8852-4D3D031D2C3C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5C1C7BA4-C589-41D7-8BEA-C62A05339C82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C1C7BA4-C589-41D7-8BEA-C62A05339C82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C1C7BA4-C589-41D7-8BEA-C62A05339C82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C1C7BA4-C589-41D7-8BEA-C62A05339C82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3FADBBF-355D-4514-8852-4D3D031D2C3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3FADBBF-355D-4514-8852-4D3D031D2C3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3FADBBF-355D-4514-8852-4D3D031D2C3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3FADBBF-355D-4514-8852-4D3D031D2C3C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
