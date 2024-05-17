@@ -25,39 +25,45 @@ public class AuthController : ControllerBase
     }
     private string GenerateJwtToken(string username)
     {
-        var securityKey =
-        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Secret"]));
-        var credentials =
-        new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Secret"]));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         var claims = new[]
         {
-new Claim(ClaimTypes.NameIdentifier, username)
-};
+            new Claim(ClaimTypes.NameIdentifier, username)
+            };
+
         var token = new JwtSecurityToken(
-        _config["Issuer"],
-        "http://localhost",
-        claims,
-        expires: DateTime.Now.AddMinutes(15),
-        signingCredentials: credentials);
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
+            _config["Issuer"],
+            "http://localhost",
+            claims,
+            expires: DateTime.Now.AddMinutes(15),
+            signingCredentials: credentials);
+            
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+
     [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel login)
     {
+        _logger.LogInformation($"{login.UserName}"); //if login is not null validate?
         string url = _config["apiGetUser"] ?? string.Empty;
-        HttpResponseMessage response = await _httpClient.GetAsync("http://" + url + $"?username={login.UserName}&Password={login.Password}");
+        _logger.LogInformation($"url exists {url}");
+        HttpResponseMessage response = await _httpClient.GetAsync("http://" + url + $"?username={login.UserName}&Password={login.Password}" );
+        
         string responseContent = await response.Content.ReadAsStringAsync();
-
+        _logger.LogInformation($"Response: {responseContent}");
         User user = JsonConvert.DeserializeObject<User>(responseContent);
+        _logger.LogInformation($"{user.UserName}");
 
-        if (login.UserName != user.UserName && login.Password != user.Password)
+        if (login.UserName != user.UserName || login.Password != user.Password)
         {
             return Unauthorized();
         }
 
         var token = GenerateJwtToken(login.UserName);
-
+        _logger.LogInformation($"token:{token}");
         return Ok(token);
     }
 
@@ -80,8 +86,7 @@ new Claim(ClaimTypes.NameIdentifier, username)
                 ClockSkew = TimeSpan.Zero
             }, out SecurityToken validatedToken);
             var jwtToken = (JwtSecurityToken)validatedToken;
-            var accountId = jwtToken.Claims.First(
-            x => x.Type == ClaimTypes.NameIdentifier).Value;
+            var accountId = jwtToken.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
             return Ok(accountId);
         }
         catch (Exception ex)
