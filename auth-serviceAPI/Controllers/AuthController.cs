@@ -18,15 +18,17 @@ public class AuthController : ControllerBase
 
     private readonly ILogger<AuthController> _logger;
 
-    public AuthController(ILogger<AuthController> logger, IConfiguration configuration)
+    public AuthController(ILogger<AuthController> logger, IConfiguration config)
     {
-        _config = configuration;
+        _config = config;
         _logger = logger;
     }
     private string GenerateJwtToken(string username)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Secret"]));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Secret"] ?? string.Empty));
+        
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);        
+        
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, username)
@@ -34,7 +36,7 @@ public class AuthController : ControllerBase
 
         var token = new JwtSecurityToken(
             _config["Issuer"],
-            "http://localhost",
+            _config["ValidAudience"] ?? "http://localhost",
             claims,
             expires: DateTime.Now.AddMinutes(15),
             signingCredentials: credentials);
@@ -47,15 +49,16 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel login)
     {
-        _logger.LogInformation($"{login.UserName}"); //if login is not null validate?
         string url = _config["apiGetUser"] ?? string.Empty;
-        _logger.LogInformation($"url exists {url}");
+        _logger.LogInformation("Attempting to login to: " + "http://" + url + $" as User:{login.UserName}");
+       
         HttpResponseMessage response = await _httpClient.GetAsync("http://" + url + $"?username={login.UserName}&Password={login.Password}" );
         
         string responseContent = await response.Content.ReadAsStringAsync();
+       
         _logger.LogInformation($"Response: {responseContent}");
+       
         User user = JsonConvert.DeserializeObject<User>(responseContent);
-        _logger.LogInformation($"{user.UserName}");
 
         if (login.UserName != user.UserName || login.Password != user.Password)
         {
@@ -63,7 +66,9 @@ public class AuthController : ControllerBase
         }
 
         var token = GenerateJwtToken(login.UserName);
-        _logger.LogInformation($"token:{token}");
+       
+        _logger.LogInformation($"User: {login.UserName} has a been assigned a token!");
+       
         return Ok(token);
     }
 
