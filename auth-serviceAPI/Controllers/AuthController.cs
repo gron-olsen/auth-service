@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace authServiceAPI.Controllers;
 
@@ -26,9 +27,9 @@ public class AuthController : ControllerBase
     private string GenerateJwtToken(string username)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Secret"] ?? string.Empty));
-        
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);        
-        
+
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, username)
@@ -40,9 +41,9 @@ public class AuthController : ControllerBase
             claims,
             expires: DateTime.Now.AddMinutes(15),
             signingCredentials: credentials);
-            
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 
 
     [AllowAnonymous]
@@ -51,13 +52,13 @@ public class AuthController : ControllerBase
     {
         string url = _config["apiGetUser"] ?? string.Empty;
         _logger.LogInformation("Attempting to login to: " + "http://" + url + $" as User:{login.UserName}");
-       
-        HttpResponseMessage response = await _httpClient.GetAsync("http://" + url + $"?username={login.UserName}&Password={login.Password}" );
-        
+
+        HttpResponseMessage response = await _httpClient.GetAsync("http://" + url + $"?username={login.UserName}&Password={login.Password}");
+
         string responseContent = await response.Content.ReadAsStringAsync();
-       
+
         _logger.LogInformation($"Response: {responseContent}");
-       
+
         User user = JsonConvert.DeserializeObject<User>(responseContent);
 
         if (login.UserName != user.UserName || login.Password != user.Password)
@@ -65,11 +66,11 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        var token = GenerateJwtToken(login.UserName);
-       
         _logger.LogInformation($"User: {login.UserName} has a been assigned a token!");
-       
-        return Ok(token);
+
+        var token = GenerateJwtToken(login.UserName);
+
+        return Ok($"{login.UserName} has been logged in with the following token \n {token}");
     }
 
     [AllowAnonymous]
@@ -101,15 +102,39 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpGet("version")]
-    public IEnumerable<string> Get()
+    [HttpGet("Version")]
+    public Dictionary<string, string> GetVersion()
     {
-        var properties = new List<string>();
+        var properties = new Dictionary<string, string>();
         var assembly = typeof(Program).Assembly;
-        foreach (var attribute in assembly.GetCustomAttributesData())
-        {
-            properties.Add($"{attribute.AttributeType.Name} - {attribute.ToString()}");
-        }
+
+        properties.Add("service", "Auth");
+        var ver = System.Diagnostics.FileVersionInfo.GetVersionInfo(typeof(Program).Assembly.Location).FileVersion ?? "Undefined";
+        Console.WriteLine($"Version before: {ver}");
+        properties.Add("version", ver);
+
+        var feature = HttpContext.Features.Get<IHttpConnectionFeature>();
+        var localIPAddr = feature?.LocalIpAddress?.ToString() ?? "N/A";
+        properties.Add("local-host-address", localIPAddr);
+
+        return properties;
+    }
+    [Authorize]
+    [HttpGet("[Authorize] tester")]
+    public Dictionary<string, string> GetVersion2()
+    {
+        var properties = new Dictionary<string, string>();
+        var assembly = typeof(Program).Assembly;
+
+        properties.Add("service", "Auth");
+        var ver = System.Diagnostics.FileVersionInfo.GetVersionInfo(typeof(Program).Assembly.Location).FileVersion ?? "Undefined";
+        Console.WriteLine($"Version before: {ver}");
+        properties.Add("version", ver);
+
+        var feature = HttpContext.Features.Get<IHttpConnectionFeature>();
+        var localIPAddr = feature?.LocalIpAddress?.ToString() ?? "N/A";
+        properties.Add("local-host-address", localIPAddr);
+
         return properties;
     }
 
