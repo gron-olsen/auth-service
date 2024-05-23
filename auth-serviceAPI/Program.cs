@@ -8,15 +8,14 @@ var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurre
 
 try
 {
-
     var builder = WebApplication.CreateBuilder(args);
+
     string myValidAudience = Environment.GetEnvironmentVariable("Valid")?? "http://localhost";
     string mySecret = Environment.GetEnvironmentVariable("Secret") ?? "none";
     string myIssuer = Environment.GetEnvironmentVariable("Issuer") ?? "none";
 
-    builder.Services
-        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
+
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters()
         {
@@ -32,7 +31,6 @@ try
     // Add services to the container.
 
     builder.Services.AddControllers();
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
@@ -42,6 +40,7 @@ try
     app.UseSwaggerUI();
 
     app.UseHttpsRedirection();
+    
     app.UseAuthentication();
     app.UseAuthorization();
 

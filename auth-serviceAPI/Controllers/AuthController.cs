@@ -26,9 +26,14 @@ public class AuthController : ControllerBase
     }
     private string GenerateJwtToken(string username)
     {
+        _logger.LogInformation("", username);
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Secret"] ?? string.Empty));
 
+        _logger.LogInformation($"{securityKey}, {username}");
+
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        _logger.LogInformation($"{username}:{credentials}");
 
         var claims = new[]
         {
@@ -37,10 +42,12 @@ public class AuthController : ControllerBase
 
         var token = new JwtSecurityToken(
             _config["Issuer"],
-            _config["ValidAudience"] ?? "http://localhost",
+            _config["Valid"] ?? "http://localhost",
             claims,
             expires: DateTime.Now.AddMinutes(15),
             signingCredentials: credentials);
+
+        _logger.LogInformation($"{token}");
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
@@ -54,6 +61,8 @@ public class AuthController : ControllerBase
         _logger.LogInformation("Attempting to login to: " + "http://" + url + $" as User:{login.UserName}");
 
         HttpResponseMessage response = await _httpClient.GetAsync("http://" + url + $"?username={login.UserName}&Password={login.Password}");
+
+        response.EnsureSuccessStatusCode();
 
         string responseContent = await response.Content.ReadAsStringAsync();
 
@@ -69,8 +78,9 @@ public class AuthController : ControllerBase
         _logger.LogInformation($"User: {login.UserName} has a been assigned a token!");
 
         var token = GenerateJwtToken(login.UserName);
+        return Ok(token);
 
-        return Ok($"{login.UserName} has been logged in with the following token \n {token}");
+        //return Ok($"{login.UserName} has been logged in with the following token \n {token}");
     }
 
     [AllowAnonymous]
@@ -91,6 +101,8 @@ public class AuthController : ControllerBase
                 ValidateAudience = false,
                 ClockSkew = TimeSpan.Zero
             }, out SecurityToken validatedToken);
+
+            
             var jwtToken = (JwtSecurityToken)validatedToken;
             var accountId = jwtToken.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
             return Ok(accountId);
@@ -119,25 +131,4 @@ public class AuthController : ControllerBase
 
         return properties;
     }
-    [Authorize]
-    [HttpGet("[Authorize] tester")]
-    public Dictionary<string, string> GetVersion2()
-    {
-        var properties = new Dictionary<string, string>();
-        var assembly = typeof(Program).Assembly;
-
-        properties.Add("service", "Auth");
-        var ver = System.Diagnostics.FileVersionInfo.GetVersionInfo(typeof(Program).Assembly.Location).FileVersion ?? "Undefined";
-        Console.WriteLine($"Version before: {ver}");
-        properties.Add("version", ver);
-
-        var feature = HttpContext.Features.Get<IHttpConnectionFeature>();
-        var localIPAddr = feature?.LocalIpAddress?.ToString() ?? "N/A";
-        properties.Add("local-host-address", localIPAddr);
-
-        return properties;
-    }
-
-
 }
-

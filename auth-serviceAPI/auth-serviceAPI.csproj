@@ -18,10 +18,13 @@
       0.2.2 fixed calls
       0.3.3 Changes made to work with Auction-Service
       0.4.0 Added better logging
+      0.5.1 Test Authorization
+      0.5.2 Fixed Authorization + small changes
     </Description>
         </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.5" />
+    <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.3.2" />
     <PackageReference Include="NLog.Targets.Loki" Version="2.2.0" />
