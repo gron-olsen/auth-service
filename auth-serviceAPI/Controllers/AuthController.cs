@@ -26,14 +26,11 @@ public class AuthController : ControllerBase
     }
     private string GenerateJwtToken(string username)
     {
-        _logger.LogInformation("", username);
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Secret"] ?? string.Empty));
 
-        _logger.LogInformation($"{securityKey}, {username}");
 
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        _logger.LogInformation($"{username}:{credentials}");
 
         var claims = new[]
         {
@@ -46,8 +43,6 @@ public class AuthController : ControllerBase
             claims,
             expires: DateTime.Now.AddMinutes(15),
             signingCredentials: credentials);
-
-        _logger.LogInformation($"{token}");
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
@@ -62,11 +57,8 @@ public class AuthController : ControllerBase
 
         HttpResponseMessage response = await _httpClient.GetAsync("http://" + url + $"?username={login.UserName}&Password={login.Password}");
 
-        response.EnsureSuccessStatusCode();
-
         string responseContent = await response.Content.ReadAsStringAsync();
 
-        _logger.LogInformation($"Response: {responseContent}");
 
         User user = JsonConvert.DeserializeObject<User>(responseContent);
 
@@ -79,8 +71,6 @@ public class AuthController : ControllerBase
 
         var token = GenerateJwtToken(login.UserName);
         return Ok(token);
-
-        //return Ok($"{login.UserName} has been logged in with the following token \n {token}");
     }
 
     [AllowAnonymous]
