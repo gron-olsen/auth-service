@@ -57,6 +57,8 @@ public class AuthController : ControllerBase
 
         HttpResponseMessage response = await _httpClient.GetAsync("http://" + url + $"?username={login.UserName}&Password={login.Password}");
 
+        response.EnsureSuccessStatusCode();
+
         string responseContent = await response.Content.ReadAsStringAsync();
 
 
@@ -71,37 +73,6 @@ public class AuthController : ControllerBase
 
         var token = GenerateJwtToken(login.UserName);
         return Ok(token);
-    }
-
-    [AllowAnonymous]
-    [HttpPost("validate")]
-    public async Task<IActionResult> ValidateJwtToken([FromBody] string? token)
-    {
-        if (token.IsNullOrEmpty())
-            return BadRequest("Invalid token submitted.");
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_config["Secret"]!);
-        try
-        {
-            tokenHandler.ValidateToken(token, new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ClockSkew = TimeSpan.Zero
-            }, out SecurityToken validatedToken);
-
-            
-            var jwtToken = (JwtSecurityToken)validatedToken;
-            var accountId = jwtToken.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
-            return Ok(accountId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, ex.Message);
-            return StatusCode(404);
-        }
     }
 
     [HttpGet("Version")]

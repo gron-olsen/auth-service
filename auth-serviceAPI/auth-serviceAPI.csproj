@@ -8,8 +8,8 @@
     <Company>Grøn og Olsen</Company>
     <Authors>Gruppe 432</Authors>
     
-    <AssemblyVersion>0.5.2</AssemblyVersion>
-    <FileVersion>0.5.2</FileVersion>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
     
     <Description>
       0.0.1 initial commit
@@ -20,6 +20,7 @@
       0.4.0 Added better logging
       0.5.1 Test Authorization
       0.5.2 Fixed Authorization + small changes
+      1.0.0 Release
     </Description>
         </PropertyGroup>
   <ItemGroup>
